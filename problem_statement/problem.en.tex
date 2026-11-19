@@ -5,6 +5,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{verbatim}
 \usepackage{wrapfig}
+\usepackage{url}
 
 % Define \problemname and \illustration if not using Kattis template
 \newcommand{\problemname}[1]{\section*{#1}}
@@ -94,86 +95,101 @@ their satisfaction from trades.
 \begin{wrapfigure}{r}{0.4\textwidth}
     \centering
     \includegraphics[width=\linewidth]{image1.png}
-    \caption{Bob during the trading night}
+    \caption[Bob during the trading night]{Bob during the trading night. \\
+        {\footnotesize Source: TikTok, @mamaaaemmaaatts,
+        \url{https://www.tiktok.com/@mamaaaemmaaatts/video/7687791956008701197}}}
 \end{wrapfigure}
+
+\textit{This is an interactive problem.}
 
 Your parents run Sweet Tooth Capital, a trading firm, and they're raising you
 and your brother Bob to take over the family business one day. The training
-program is simple: every Halloween, the two of you trade candy with each other
-like real traders.
+program is simple: every Halloween, the two of you trade candy like real
+traders.
 
-There's a catch. Your parents like Bob more, so they gave him control of the
-trading system. Bob decides which listings get posted and in what order, and
-only he knows how much he actually values each candy. If he thinks you're
-lowballing, he'll tell you to add more, but only once, because Bob has very
-little patience. Anything you hand over is gone for good. Anything you receive
-goes into your Final Bowl, where it counts at midnight but can never be traded
+There's a catch. Your parents like Bob more, so they put him in charge of the
+trading system. If he thinks you're lowballing, he'll tell you to add more, but
+only once, because Bob has very little patience. Anything you receive goes into
+your Final Bowl, where it counts at midnight but can never be traded
 again.
 
 There are five types of candy: Starburst, Skittles, Twizzlers, Reese's Pieces
 and Nerds. Each piece of type $t$ is worth $a_t$ satisfaction to you and $b_t$
-satisfaction to Bob. You know your candy preferences, but Bob keeps his $b_t$
-secret. All of these values are fixed before the night begins and do not
-change throughout the night.
+satisfaction to Bob. You know every $a_t$. The $b_t$ values are hidden integers
+with $1 \le b_t \le 10$. They are fixed before the interaction starts and never
+change, so the judge is not adaptive.
 
-Bob has posted $N$ listings, in a fixed order. A listing is a type and a
-count, meaning Bob will hand over that many pieces of that type. You know all
-the listings in advance. Work through them one at a time, paying with your own
-candy, and finish the night with a total satisfaction of at least $S$.
+You start with $o_t$ pieces of each type. Candy you receive goes into your Final Bowl 
+and can never be offered again. Only candy from your starting stock can be offered.
 
-\subsection*{Input}
+\subsection*{Goal}
 
-The first line of the input contains a single integer $S$
-($1 \le S \le 10\,000$), your satisfaction goal.
+Bob has posted $N$ listings in a fixed order, and you know them all in advance.
+Listing $i$ means ``Bob gives you $c_i$ pieces of type $t_i$.'' Handle the
+listings one at a time. When all are done, your score is
+$\sum_t a_t \times (\text{pieces of } t \text{ left in your stock} +
+\text{pieces of } t \text{ in your Final Bowl})$.
 
+You must finish with a score of at least $S$. It is guaranteed that, if you knew
+every $b_t$, you could reach a score of at least $2S$.
+
+\subsection*{Input (read all of it before the interaction begins)}
+
+The first line of the input contains a single integer, $S$
+($1 \le S \le 10000$), your satisfaction goal.
 Each of the next five lines contains a type name, the number of pieces $o_t$
 you own ($0 \le o_t \le 100$), and your satisfaction $a_t$ per piece
 ($1 \le a_t \le 10$). The types appear in the order Starburst, Skittles,
 Twizzlers, ReesesPieces, Nerds.
-
-The next line contains the integer $N$ ($1 \le N \le 100$). Each of the next
-$N$ lines contains a type name and an integer $c$ ($1 \le c \le 50$): this
-listing is $c$ pieces of that type.
-
-Bob's values satisfy $1 \le b_t \le 10$ for every type $t$ and are not part of
-the input.
+The next line contains the integer $N$ ($100 \le N \le 300$). Each of the next
+$N$ lines represents a listing and contains a type name and an integer $c$
+($1 \le c \le 50$): this listing is $c$ pieces of that type.
 
 \subsection*{Interaction}
 
-For each listing, in order, print one line:
+For each listing, in order, print exactly one of:
+
 \begin{itemize}
-    \item \texttt{SKIP} to pass on the listing.
-    \item \texttt{OFFER $t_1$ $c_1$ $t_2$ $c_2$ \ldots} to put $c_j$ pieces of
-        type $t_j$ on the table. Each type may appear at most once, and you
-        can only use candy you still own that is not in your Final Bowl.
+  \item SKIP: to pass on this listing. Bob sends no reply, and you go to the
+        next listing.
+  \item OFFER $t_1$ $c_1$ $t_2$ $c_2$ \ldots{} to put $c_j$ pieces of type
+        $t_j$ on the table. Rules:
+        \begin{itemize}
+          \item Each type may appear at most once,
+          \item the total number of pieces you offer for this listing is at
+                most 10 pieces,
+          \item You can only use candy you still own that is not in your Final
+                Bowl.
+        \end{itemize}
 \end{itemize}
 
-Bob's gain is the total $b$-value of the candy you have offered minus the
-total $b$-value of the candy in the listing. He replies:
+Bob's gain is the total $b$-value of all candy on the table minus
+$b_t \times c$ for the listing. Bob replies:
+
 \begin{itemize}
-    \item \texttt{ACCEPT} if his gain is strictly positive. The candy you
-        offered goes to Bob, and the listed candy goes into your Final Bowl.
-    \item \texttt{ADD} otherwise, at most once per listing. Bob is asking for
-        more, and you must answer with one of the following:
+  \item ACCEPT if his gain is strictly positive. Your offered candy goes to
+        Bob, and the listed candy goes into your Final Bowl.
+  \item ADD otherwise. This happens at most once per listing. Bob is asking for
+        more, and you must print one of the following:
         \begin{itemize}
-            \item \texttt{OFFER $t_1$ $c_1$ $t_2$ $c_2$ \ldots} again, with
-                additional pieces that are added to your earlier offer. Bob
-                then replies \texttt{ACCEPT} if his gain is now strictly
-                positive, or \texttt{DECLINE} otherwise.
-            \item \texttt{WALK} to withdraw from this listing. Nothing is
-                traded and all the candy you offered returns to you. Bob
-                replies \texttt{DECLINE}.
+          \item OFFER $t_1$ $c_1$ $t_2$ $c_2$ \ldots{} again, extra pieces added
+                to what's already on the table. A type may repeat a type from
+                your first offer; the counts add up. Bob replies ACCEPT if his
+                gain is now strictly positive, or DECLINE otherwise.
+          \item WALK to withdraw from this listing. Nothing is traded and all
+                the candy you offered returns to you. Bob replies DECLINE.
         \end{itemize}
-    \item \texttt{DECLINE} if his gain is still not positive after your second
-        \texttt{OFFER}, or after \texttt{WALK}. Nothing is traded, and your
+  \item DECLINE (only after a second OFFER or a WALK). No trade happens and all
         offered candy returns to you.
 \end{itemize}
 
-After the last listing, your program must exit. If your total satisfaction,
-Final Bowl included, is at least $S$, your submission is Accepted. An invalid
-line, or a total below $S$, gives Wrong Answer.
+After ACCEPT or DECLINE, move on to the next listing. After the last listing,
+exit.
 
-Remember to flush standard out after every line.
+An invalid line gives Wrong Answer immediately, and the judge stops responding.
+Otherwise you get Accepted if your final score is at least $S$, and Wrong Answer
+if not. Flush output after every line.
+
 
 \begin{table}[h]
 \centering
