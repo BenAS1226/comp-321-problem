@@ -1,17 +1,12 @@
-#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <fstream>
+#include <ostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-enum class CandyType {
-    Starburst,
-    Skittles,
-    Twizzlers,
-    ReesesPieces,
-    Nerds
-};
+using namespace std;
 
 struct CandyInfo{
     int count;
@@ -19,40 +14,32 @@ struct CandyInfo{
 };
 
 struct Listing {
-    CandyType type;
+    string type;
     int count;
-};
-
-enum class AliceResponses {
-    Skip,
-    Offer,
-    Walk
-};
-
-enum class BobResponses {
-    Accept,
-    Add,
-    Decline
 };
 
 // Initialize with max values
 struct input {
     int S = 10000;
-    std::pmr::unordered_map<CandyType, CandyInfo> aliceCandy = {
-        {CandyType::Starburst,    CandyInfo{100 ,10}},
-        {CandyType::Skittles,     CandyInfo{100, 10}},
-        {CandyType::Twizzlers,    CandyInfo{100, 10}},
-        {CandyType::ReesesPieces, CandyInfo{100, 10}},
-        {CandyType::Nerds,        CandyInfo{100, 10}}
+    unordered_map<string, CandyInfo> aliceCandy = {
+        {"Starburst",    CandyInfo{100 ,10}},
+        {"Skittles",     CandyInfo{100, 10}},
+        {"Twizzlers",    CandyInfo{100, 10}},
+        {"ReesesPieces", CandyInfo{100, 10}},
+        {"Nerds",        CandyInfo{100, 10}}
     };
     int N = 100;
     Listing listings[300];
-    AliceResponses responses[600]; // 2 inputs per listing
+    // string responses[600]; // 2 inputs per listing
 };
 
 struct output {
-    BobResponses responses[600]; // 2 outputs per listing
+    string responses[600]; // 2 outputs per listing
 };
+
+int rand_from_buf(int min, int max, char byte) {
+    return min + (max - min) * (static_cast<float>(byte) + 128) / 255;
+}
 
 // S [1, 10000]
 // Starburst    o [1, 100] a [1, 10]
@@ -62,42 +49,79 @@ struct output {
 // Nerds        o [1, 100] a [1, 10]
 // N [1, 100]
 // [Candy Type]_i c_i [1, 50]  (i in [1, N])
-
-int clamp(int min, int max, int val) {
-    return std::max({std::min({val, max}), min});
-}
-
-int lerp(int min, int max, int val) {
-    return (val - min) / (max - min);
-}
-
+// Starburst    b [1, 10] (Hidden)
+// Skittles     b [1, 10] (Hidden)
+// Twizzlers    b [1, 10] (Hidden)
+// ReesesPieces b [1, 10] (Hidden)
+// Nerds        b [1, 10] (Hidden)
 int main() {
-    // Open /dev/random
-    std::ifstream randomFile("/dev/random", std::ios::binary);
+    ifstream rng("/dev/random", ios::binary);
     
-    if (!randomFile) {
-        std::cerr << "Error opening /dev/random" << std::endl;
+    if (!rng) {
+        cerr << "Error opening /dev/random" << endl;
         return 1;
     }
 
-    // Buffer to hold random data
-    std::vector<char> buffer(1); // Read 1 bytes
+    vector<char> buffer(1);
+    rng.read(buffer.data(), buffer.size());
 
-    // Read random data
-    randomFile.read(buffer.data(), buffer.size());
+    // N [1, 100]
+    int n = rand_from_buf(1, 100, buffer[0]);
+    buffer.resize(11 + 3 * n);
+    rng.read(buffer.data(), buffer.size());
+    int i = 0;
 
-    // Check if read was successful
-    if (static_cast<long unsigned int>(randomFile.gcount()) != buffer.size()) {
-        std::cerr << "Error reading from /dev/random" << std::endl;
-        return 1;
+    input example;
+    example.N = n;
+
+    // Starburst    o [1, 100] a [1, 10]
+    // Skittles     o [1, 100] a [1, 10]
+    // Twizzlers    o [1, 100] a [1, 10]
+    // ReesesPieces o [1, 100] a [1, 10]
+    // Nerds        o [1, 100] a [1, 10]
+    int satSum = 0;
+    for (auto& [type, info] : example.aliceCandy) {
+        int count = info.count = rand_from_buf(1, 100, buffer[i++]);
+        int sat = info.satisfaction = rand_from_buf(1, 10, buffer[i++]);
+        satSum += sat * count;
     }
+    example.S = satSum + rand_from_buf(1, 10000 - satSum, buffer[i++]);
 
-    // Output the random bytes
-    std::cout << "Random bytes: ";
-    for (char byte : buffer) {
-        std::cout << clamp(1, 100, static_cast<unsigned int>(byte)) << " ";
+    string types[] = {
+        "Nerds",
+        "ReesesPieces",
+        "Skittles",
+        "Starburst",
+        "Twizzlers"
+    };
+
+    // [Candy Type]_i c_i [1, 50]  (i in [1, N])
+    satSum = 0;
+    while (i < buffer.size()) {
+        int l = floor((i - 11) / 3);
+        string type = types[rand_from_buf(0, 4, buffer[i++])];
+        example.listings[l].type = type;
+        int count = example.listings[l].count = rand_from_buf(1, 50, buffer[i++]);
+        satSum += count * example.aliceCandy[type].satisfaction;
     }
-    std::cout << std::dec << std::endl; // Reset to decimal output
-
+    
+    // S [1, 10000]
+    // Starburst    o [1, 100] a [1, 10]
+    // Skittles     o [1, 100] a [1, 10]
+    // Twizzlers    o [1, 100] a [1, 10]
+    // ReesesPieces o [1, 100] a [1, 10]
+    // Nerds        o [1, 100] a [1, 10]
+    // N [1, 100]
+    // [Candy Type]_i c_i [1, 50]  (i in [1, N])
+    cout << example.S << "\n";
+    cout << "Starburst " << example.aliceCandy["Starburst"].count << " " << example.aliceCandy["Starburst"].satisfaction << "\n";
+    cout << "Skittles " << example.aliceCandy["Skittles"].count << " " << example.aliceCandy["Skittles"].satisfaction << "\n";
+    cout << "Twizzlers " << example.aliceCandy["Twizzlers"].count << " " << example.aliceCandy["Twizzlers"].satisfaction << "\n";
+    cout << "ReesesPieces " << example.aliceCandy["ReesesPieces"].count << " " << example.aliceCandy["ReesesPieces"].satisfaction << "\n";
+    cout << "Nerds " << example.aliceCandy["Nerds"].count << " " << example.aliceCandy["Nerds"].satisfaction << "\n";
+    cout << example.N << "\n";
+    for (int i = 0; i < example.N; i++) cout << example.listings[i].type << " " << example.listings[i].count << "\n";
+    cout << flush;
+  
     return 0;
 }
