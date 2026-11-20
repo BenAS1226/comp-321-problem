@@ -161,7 +161,7 @@ int main() {
         return 1;
     }
 
-    for (int f = 0; f < 21; f++) {
+    for (int f = 0; f < 23; f++) {
         input input;
         while (true) {  // retry until the test is valid
             vector<char> buffer(1);
@@ -278,9 +278,13 @@ int main() {
         // Twizzlers    b [1, 10] (Hidden)
         // ReesesPieces b [1, 10] (Hidden)
         // Nerds        b [1, 10] (Hidden)
-        string fileName = "./inputs/secret_" + to_string(f + 1) + ".in";
-        if (f == 20) fileName = "./inputs/sample.in";
-        ofstream inputFile(fileName);
+
+        // f = 0..19 -> data/secret/secret_1..20, f = 20..22 -> data/sample/sample_1..3
+        string base = "../data/secret/secret_" + to_string(f + 1);
+        if (f >= 20) base = "../data/sample/sample_" + to_string(f - 19);
+
+        ofstream(base + ".ans").close();   // empty .ans file (Deliverable 2.6)
+        ofstream inputFile(base + ".in");
 
         inputFile << input.S << "\n";
         inputFile << "Starburst " << input.aliceCandy["Starburst"].count << " " << input.aliceCandy["Starburst"].satisfaction << "\n";
