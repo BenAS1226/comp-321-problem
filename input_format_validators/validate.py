@@ -10,7 +10,7 @@ Test file (.in) format:
     Twizzlers    o a
     ReesesPieces o a
     Nerds        o a
-    N                               1 <= N <= 1000  (300 <= N with --secret)
+    N                               1 <= N <= 300 
     <type> c     (N lines)          1 <= c <= 10
     
     Starburst    b                      hidden values, 1 <= b <= 10
@@ -61,9 +61,7 @@ for name in TYPES:
 # N
 (n_tok,) = read_line(INT)
 N = int(n_tok)
-assert 1 <= N <= 1000, f"N out of range: {N}"
-if secret:
-    assert N >= 300, f"secret test needs N >= 300, got {N}"
+assert 1 <= N <= 300, f"N out of range: {N}"
 
 # listings
 type_re = "(" + "|".join(TYPES) + ")"

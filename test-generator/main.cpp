@@ -71,8 +71,8 @@ int main() {
         vector<char> buffer(1);
         rng.read(buffer.data(), buffer.size());
 
-        // N [1, 100]
-        int n = rand_from_buf(1, 100, buffer[0]);
+        // N [1, 300]
+        int n = rand_from_buf(1, 300, buffer[0]);
         buffer.resize(16 + 2 * n);
         rng.read(buffer.data(), buffer.size());
         size_t i = 0;
@@ -135,7 +135,7 @@ int main() {
             int l = floor((i - 10) / 2.0);
             string type = types[rand_from_buf(0, 4, buffer[i++])];
             input.listings[l].type = type;
-            int count = input.listings[l].count = rand_from_buf(1, 50, buffer[i++]);
+            int count = input.listings[l].count = rand_from_buf(1, 10, buffer[i++]);
             listingCounts[type] += count;
             bobSatSum += count * input.aliceCandy[type].satisfaction;
         }
