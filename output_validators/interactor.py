@@ -7,8 +7,9 @@ Kattis runs it as:
 with its stdout connected to the contestant's stdin, and its stdin
 connected to the contestant's stdout.
 
-The .in file has the format checked by the input validator; its last line
-holds Bob's hidden values b1..b5 and is NEVER sent to the contestant.
+The .in file has the format checked by the input validator; it also
+holds Bob's hidden values: the last five lines, "Starburst b" ... "Nerds b",
+in the same order as the candy lines. They are NEVER sent to the contestant.
 
 Exit 42 = Accepted, exit 43 = Wrong Answer. The reason is written to
 <feedback_dir>/judgemessage.txt.
@@ -57,8 +58,8 @@ def receive(what):
 with open(in_path) as f:
     lines = f.read().splitlines()
 
-visible = lines[:-1]                       # everything except Bob's line
-b = list(map(int, lines[-1].split()))      # Bob's hidden values
+visible = lines[:-5]                       # everything except Bob's 5 lines
+b = [int(line.split()[1]) for line in lines[-5:]]   # Bob's hidden values
 
 S = int(lines[0])
 own, mine = [], []
